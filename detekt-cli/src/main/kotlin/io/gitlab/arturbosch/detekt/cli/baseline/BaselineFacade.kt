@@ -21,8 +21,8 @@ class BaselineFacade(private val baselineFile: Path) {
         return whiteFiltered.filterNot { finding -> baseline.blacklist.contains(finding.baselineId) }
     }
 
-    fun create(smells: List<Finding>) {
-        val ids = smells.map { it.baselineId }.toSortedSet()
+    fun create(findings: List<Finding>) {
+        val ids = findings.map { it.baselineId }.toSortedSet()
         val newBaseline = Baseline(baseline.blacklist, ids)
         baselineFile.parent?.let { Files.createDirectories(it) }
         BaselineFormat().write(newBaseline, baselineFile)
