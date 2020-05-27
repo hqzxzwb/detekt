@@ -3,9 +3,7 @@ package io.gitlab.arturbosch.detekt.cli.runners
 import io.gitlab.arturbosch.detekt.api.Detektion
 import io.gitlab.arturbosch.detekt.cli.BuildFailure
 import io.gitlab.arturbosch.detekt.cli.CliArgs
-import io.gitlab.arturbosch.detekt.cli.baseline.BaselineFilteredResult
 import io.gitlab.arturbosch.detekt.cli.OutputFacade
-import io.gitlab.arturbosch.detekt.cli.baseline.BaselineFacade
 import io.gitlab.arturbosch.detekt.cli.config.checkConfiguration
 import io.gitlab.arturbosch.detekt.cli.console.red
 import io.gitlab.arturbosch.detekt.cli.createClasspath
@@ -18,6 +16,7 @@ import io.gitlab.arturbosch.detekt.cli.loadConfiguration
 import io.gitlab.arturbosch.detekt.cli.maxIssues
 import io.gitlab.arturbosch.detekt.core.DetektFacade
 import io.gitlab.arturbosch.detekt.core.ProcessingSettings
+import io.gitlab.arturbosch.detekt.core.baseline.BaselineFacade
 import java.io.PrintStream
 
 class Runner(
@@ -35,21 +34,12 @@ class Runner(
             var (engineRunTime, result) = measure { facade.run() }
             settings.debug { "Running core engine took $engineRunTime ms" }
             checkBaselineCreation(result)
-            result = transformResult(result)
+            result = arguments.baseline?.let { BaselineFacade(it).transformResult(result) } ?: result
             val (outputResultsTime) = measure { OutputFacade(arguments, result, settings).run() }
             settings.debug { "Writing results took $outputResultsTime ms" }
             if (!arguments.createBaseline) {
                 checkBuildFailureThreshold(result, settings)
             }
-        }
-    }
-
-    private fun transformResult(result: Detektion): Detektion {
-        val baselineFile = arguments.baseline
-        return if (baselineFile != null) {
-            BaselineFilteredResult(result, BaselineFacade(baselineFile))
-        } else {
-            result
         }
     }
 

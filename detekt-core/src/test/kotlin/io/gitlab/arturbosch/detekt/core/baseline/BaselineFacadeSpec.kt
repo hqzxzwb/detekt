@@ -1,20 +1,23 @@
-package io.gitlab.arturbosch.detekt.cli.baseline
+package io.gitlab.arturbosch.detekt.core.baseline
 
 import io.github.detekt.test.utils.createTempDirectoryForTest
 import io.github.detekt.test.utils.resourceAsPath
 import io.gitlab.arturbosch.detekt.api.Finding
-import io.gitlab.arturbosch.detekt.cli.createFinding
+import io.mockk.every
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 
 class BaselineFacadeSpec : Spek({
 
     describe("a baseline facade") {
 
         val dir = createTempDirectoryForTest("baseline_format")
+        val validBaseline = resourceAsPath("/baseline_feature/valid-baseline.xml")
 
         it("creates a baseline file") {
             val fullPath = dir.resolve("baseline.xml")
@@ -23,9 +26,8 @@ class BaselineFacadeSpec : Spek({
 
         it("creates on top of an existing a baseline file") {
             val fullPath = dir.resolve("baseline2.xml")
-            val existingFile = resourceAsPath("/smell-baseline.xml").toFile()
 
-            existingFile.copyTo(fullPath.toFile(), overwrite = true)
+            Files.copy(validBaseline, fullPath, StandardCopyOption.REPLACE_EXISTING)
 
             assertNonEmptyBaseline(fullPath)
         }
@@ -35,7 +37,7 @@ class BaselineFacadeSpec : Spek({
         }
 
         it("filters with an existing baseline file") {
-            assertFilter(resourceAsPath("/smell-baseline.xml"))
+            assertFilter(validBaseline)
         }
     }
 })
@@ -48,7 +50,10 @@ private fun assertNonEmptyBaseline(fullPath: Path) {
 }
 
 private fun assertFilter(path: Path) {
-    val findings = listOf<Finding>(createFinding())
+    val finding = mockk<Finding>()
+    every { finding.id }.returns("test")
+    every { finding.signature }.returns("test")
+    val findings = listOf(finding)
     val result = BaselineFacade(path).filter(findings)
     assertThat(result).isEqualTo(findings)
 }

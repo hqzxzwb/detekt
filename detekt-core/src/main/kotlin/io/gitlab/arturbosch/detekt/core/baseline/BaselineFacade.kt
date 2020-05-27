@@ -1,5 +1,6 @@
-package io.gitlab.arturbosch.detekt.cli.baseline
+package io.gitlab.arturbosch.detekt.core.baseline
 
+import io.gitlab.arturbosch.detekt.api.Detektion
 import io.gitlab.arturbosch.detekt.api.Finding
 import io.gitlab.arturbosch.detekt.core.exists
 import io.gitlab.arturbosch.detekt.core.isFile
@@ -15,6 +16,9 @@ class BaselineFacade(private val baselineFile: Path) {
             Baseline(emptySet(), emptySet())
         }
     }
+
+    fun transformResult(result: Detektion): Detektion =
+        BaselineFilteredResult(result, this)
 
     fun filter(findings: List<Finding>): List<Finding> {
         val whiteFiltered = findings.filterNot { finding -> baseline.whitelist.contains(finding.baselineId) }
