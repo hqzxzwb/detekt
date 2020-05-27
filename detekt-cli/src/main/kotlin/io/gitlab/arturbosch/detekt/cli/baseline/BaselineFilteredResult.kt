@@ -4,7 +4,7 @@ import io.gitlab.arturbosch.detekt.api.Detektion
 import io.gitlab.arturbosch.detekt.api.Finding
 import io.gitlab.arturbosch.detekt.api.RuleSetId
 
-class BaselineFilteredResult(
+internal class BaselineFilteredResult(
     result: Detektion,
     baselineFacade: BaselineFacade
 ) : Detektion by result {
